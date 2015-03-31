@@ -16,7 +16,6 @@ stb_image.cmo: stb_image.ml stb_image.cmi
 
 stb_image.cma: stb_image.cmo dll_stb_image_stubs.so
 	ocamlc -a -custom -o $@ $< \
-	       -ccopt -L/usr/local/lib \
 	       -dllib dll_stb_image_stubs.so \
 	       -cclib -l_stb_image_stubs
 
@@ -28,9 +27,9 @@ stb_image.cmxa stb_image.a: stb_image.cmx dll_stb_image_stubs.so
 	      -cclib -l_stb_image_stubs \
 	  		-ccopt -O3 -ccopt -std=gnu99 -ccopt -ffast-math
 
-.PHONY: clean-doc clean clean-mlpp run-opt-demo test install
+.PHONY: clean install uninstall reinstall
 
-clean: clean-doc clean-mlpp
+clean:
 	rm -f *.[oa] *.so *.cm[ixoa] *.cmxa
 
 DIST_FILES=              \
