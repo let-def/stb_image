@@ -39,6 +39,8 @@ DIST_FILES=              \
 	stb_image.cma          \
 	stb_image.cmx          \
 	stb_image.cmxa         \
+	stb_image.ml           \
+	stb_image.mli          \
 	lib_stb_image_stubs.a  \
 	dll_stb_image_stubs.so
 
