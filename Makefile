@@ -1,7 +1,10 @@
+OCAMLC=ocamlfind c
+OCAMLOPT=ocamlfind opt
+
 all: stb_image.cma stb_image.cmxa
 
 ml_stb_image.o: ml_stb_image.c
-	ocamlc -c -ccopt "-O3 -std=gnu99 -ffast-math" $<
+	$(OCAMLC) -c -ccopt "-O3 -std=gnu99 -ffast-math" $<
 
 dll_stb_image_stubs.so lib_stb_image_stubs.a: ml_stb_image.o
 	ocamlmklib \
@@ -9,21 +12,21 @@ dll_stb_image_stubs.so lib_stb_image_stubs.a: ml_stb_image.o
 	    -ccopt -O3 -ccopt -std=gnu99 -ccopt -ffast-math
 
 stb_image.cmi: stb_image.mli
-	ocamlc -c $<
+	$(OCAMLC) -package result -c $<
 
 stb_image.cmo: stb_image.ml stb_image.cmi
-	ocamlc -c $<
+	$(OCAMLC) -package result -c $<
 
 stb_image.cma: stb_image.cmo dll_stb_image_stubs.so
-	ocamlc -a -custom -o $@ $< \
+	$(OCAMLC) -package result -a -custom -o $@ $< \
 	       -dllib dll_stb_image_stubs.so \
 	       -cclib -l_stb_image_stubs
 
 stb_image.cmx: stb_image.ml stb_image.cmi
-	ocamlopt -c $<
+	$(OCAMLOPT) -package result -c $<
 
 stb_image.cmxa stb_image.a: stb_image.cmx dll_stb_image_stubs.so
-	ocamlopt -a -o $@ $< \
+	$(OCAMLOPT) -package result -a -o $@ $< \
 	      -cclib -l_stb_image_stubs \
 	  		-ccopt -O3 -ccopt -std=gnu99 -ccopt -ffast-math
 

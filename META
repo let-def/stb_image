@@ -1,5 +1,6 @@
 name="stb_image"
 version="0.1"
 description="OCaml bindings to stb_image, a public domain image loader"
+requires="result"
 archive(byte)="stb_image.cma"
 archive(native)="stb_image.cmxa"

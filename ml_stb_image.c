@@ -30,9 +30,9 @@ static value return_image(void *data, int ty, int x, int y, int n)
   Store_field(tup, 2, Val_int(n));
   Store_field(tup, 3, ba);
 
-  ret = caml_alloc(2, 0);
-  Store_field(ret, 0, Val_int(17724)); // (Obj.magic `Ok : int)
-  Store_field(ret, 1, tup);
+  /* Result.Ok tup */
+  ret = caml_alloc(1, 0);
+  Store_field(ret, 0, tup);
 
   CAMLreturn(ret);
 }
@@ -40,13 +40,18 @@ static value return_image(void *data, int ty, int x, int y, int n)
 static value return_failure(void)
 {
   CAMLparam0();
-  CAMLlocal2(ret, str);
+  CAMLlocal3(ret, str, err);
 
   str = caml_copy_string(stbi_failure_reason());
 
-  ret = caml_alloc(2, 0);
-  Store_field(ret, 0, Val_int(106380200)); // (Obj.magic `Error : int)
-  Store_field(ret, 1, str);
+  /* `Msg "str" */
+  err = caml_alloc(2, 0);
+  Store_field(err, 0, Val_int(3854881));
+  Store_field(err, 1, str);
+
+  /* Result.Error (`Msg "str") */
+  ret = caml_alloc(1, 1);
+  Store_field(ret, 0, err);
 
   CAMLreturn(ret);
 }

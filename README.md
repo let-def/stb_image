@@ -9,3 +9,11 @@ working OCaml and C compilers (stb\_image is self-contained).
 $ make
 $ make install
 ```
+
+## CHANGELOG
+
+Version 0.2, Sun Dec 13 15:18:39 CET 2015
+  Make use of result package
+
+Version 0.1, Fri Sep 18 20:53:03 CET 2015
+  Initial release

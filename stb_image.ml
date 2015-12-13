@@ -1,6 +1,6 @@
 open Bigarray
 
-type 'a result = [ `Ok of 'a | `Error of string ]
+type 'a result = ('a, [`Msg of string]) Result.result
 
 type 'kind buffer = ('a, 'b, c_layout) Array1.t
   constraint 'kind = ('a, 'b) kind
@@ -31,11 +31,11 @@ let copy buf =
 
 let manage f ?channels filename =
   match f ?channels filename with
-  | `Error _ as err -> err
-  | `Ok image ->
+  | Result.Error _ as err -> err
+  | Result.Ok image ->
     let managed = {image with data = copy image.data} in
     free_unmanaged image;
-    `Ok managed
+    Result.Ok managed
 
 let load    ?channels filename = manage load_unmanaged ?channels filename
 let loadf   ?channels filename = manage loadf_unmanaged ?channels filename

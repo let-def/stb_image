@@ -14,7 +14,7 @@
 *)
 open Bigarray
 
-type 'a result = [ `Ok of 'a | `Error of string ]
+type 'a result = ('a, [`Msg of string]) Result.result
 
 
 (*##############################*)
@@ -73,11 +73,11 @@ val decode  : ?channels:int -> _ buffer -> int8 t result
     See [load] for [channels] parameter. *)
 val decodef : ?channels:int -> _ buffer -> float32 t result
 
-(** {2 Low-level interface} 
+(** {2 Low-level interface}
 
     Functions are similar to the above one, except memory is not managed by OCaml GC.
     It has to be released explicitly with [free_unmanaged] function.
-    
+
     You get slightly faster load times, more deterministic memory use and more responsibility.
     Use at your own risk! *)
 
