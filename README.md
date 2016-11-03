@@ -12,6 +12,9 @@ $ make install
 
 ## CHANGELOG
 
+Version 0.3, Thu Nov  3 18:26:45 CET 2016
+  Update to stb\_image.h v2.12
+
 Version 0.2, Sun Dec 13 15:18:39 CET 2015
   Make use of result package
 
