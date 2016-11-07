@@ -31,8 +31,7 @@ stb_image.cmx: stb_image.ml stb_image.cmi
 
 stb_image.cmxa stb_image$(EXT_LIB): stb_image.cmx dll_stb_image_stubs$(EXT_DLL)
 	$(OCAMLOPT) -package result -a -o $@ $< \
-	      -cclib -l_stb_image_stubs \
-	      -ccopt -O3 -ccopt -std=gnu99 -ccopt -ffast-math
+	      -cclib -l_stb_image_stubs
 
 .PHONY: clean install uninstall reinstall
 
