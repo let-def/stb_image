@@ -1,19 +1,20 @@
 OCAMLC=ocamlfind c
 OCAMLOPT=ocamlfind opt
+OCAMLMKLIB=ocamlfind mklib
 
 EXT_DLL=$(shell $(OCAMLC) -config | grep ext_dll | cut -f 2 -d ' ')
 EXT_LIB=$(shell $(OCAMLC) -config | grep ext_lib | cut -f 2 -d ' ')
 EXT_OBJ=$(shell $(OCAMLC) -config | grep ext_obj | cut -f 2 -d ' ')
 
+CFLAGS=-O3 -std=gnu99 -ffast-math
+
 all: stb_image.cma stb_image.cmxa
 
 ml_stb_image$(EXT_OBJ): ml_stb_image.c
-	$(OCAMLC) -c -ccopt "-O3 -std=gnu99 -ffast-math" $<
+	$(OCAMLC) -c -ccopt "$(CFLAGS)" $<
 
 dll_stb_image_stubs$(EXT_DLL) lib_stb_image_stubs$(EXT_LIB): ml_stb_image$(EXT_OBJ)
-	ocamlmklib \
-	    -o _stb_image_stubs $< \
-	    -ccopt -O3 -ccopt -std=gnu99 -ccopt -ffast-math
+	$(OCAMLMKLIB) -o _stb_image_stubs $<
 
 stb_image.cmi: stb_image.mli
 	$(OCAMLC) -package result -c $<
@@ -31,12 +32,12 @@ stb_image.cmx: stb_image.ml stb_image.cmi
 
 stb_image.cmxa stb_image$(EXT_LIB): stb_image.cmx dll_stb_image_stubs$(EXT_DLL)
 	$(OCAMLOPT) -package result -a -o $@ $< \
-	      -cclib -l_stb_image_stubs
+	       -cclib -l_stb_image_stubs
 
 .PHONY: clean install uninstall reinstall
 
 clean:
-	rm -f *.[oa] *$(EXT_DLL) *.cm[ixoa] *.cmxa
+	rm -f *$(EXT_LIB) *$(EXT_OBJ) *$(EXT_DLL) *.cm[ixoa] *.cmxa
 
 DIST_FILES=                      \
 	stb_image$(EXT_LIB)            \
