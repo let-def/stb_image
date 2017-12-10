@@ -78,7 +78,8 @@ val decodef : ?channels:int -> _ buffer -> float32 t result
     Functions are similar to the above one, except memory is not managed by OCaml GC.
     It has to be released explicitly with [free_unmanaged] function.
 
-    You get slightly faster load times, more deterministic memory use and more responsibility.
+    You get slightly faster load times, more deterministic memory use and more
+    responsibility.
     Use at your own risk! *)
 
 val load_unmanaged    : ?channels:int -> string   -> int8 t result
@@ -87,3 +88,16 @@ val decode_unmanaged  : ?channels:int -> _ buffer -> int8 t result
 val decodef_unmanaged : ?channels:int -> _ buffer -> float32 t result
 val free_unmanaged: _ t -> unit
 
+(** {2 Mipmap generation} *)
+
+(** Generate one level of mipmap: downsample image half in each dimension.
+    In [mipmap imgin imgout]:
+    - imgout.channels must be imgin.channels
+    - imgout.width must be imgin.width / 2
+    - imgout.height must be imgin.height / 2
+    - imgout.data will be filled with downsampled imgin.data
+*)
+val mipmap : int8 t -> int8 t -> unit
+
+(** Downsample floating point images.  See [mipmap].  *)
+val mipmapf : float32 t -> float32 t -> unit

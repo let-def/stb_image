@@ -139,3 +139,70 @@ CAMLprim value ml_stbi_image_free(value ba)
 
   CAMLreturn(Val_unit);
 }
+
+#define POUT(x,n) pout[x] = (pin[x] + pin[n + x] + pin[w * n + n] + pin[w * n + x]) / 4
+#define POUTf(x,n) pout[x] = (pin[x] + pin[n + x] + pin[w * n + n] + pin[w * n + x]) / 4.0f
+
+#define LOOP(w,h,n) \
+  for (unsigned int y = 0, w2 = (w) / 2, h2 = (h) / 2; \
+       y < h2; ++y, pin += ((w) & 1) + (w)) \
+    for (unsigned int x = 0; x < w2; ++x, pin += 2 * n, pout += n)
+
+CAMLprim value ml_stbi_mipmap(value vw, value vh, value vn, value ba_in, value ba_out)
+{
+  CAMLparam2(ba_in, ba_out);
+  unsigned char *pin = Caml_ba_data_val(ba_in);
+  unsigned char *pout = Caml_ba_data_val(ba_out);
+
+  assert (pin);
+  assert (pout);
+
+  unsigned int w = Long_val(vw);
+  unsigned int h = Long_val(vh);
+  switch (Long_val(vn)) {
+    case 1:
+      LOOP(w, h, 1) { POUT(0, 1); }
+      break;
+    case 2:
+      LOOP(w, h, 2) { POUT(0, 2); POUT(1, 2); }
+      break;
+    case 3:
+      LOOP(w, h, 3) { POUT(0, 3); POUT(1, 3); POUT(2, 3); }
+      break;
+    case 4:
+      LOOP(w, h, 4) { POUT(0, 4); POUT(1, 4); POUT(2, 4); POUT(3, 4); }
+      break;
+  }
+
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value ml_stbi_mipmapf(value vw, value vh, value vn, value ba_in, value ba_out)
+{
+  CAMLparam2(ba_in, ba_out);
+  float *pin = Caml_ba_data_val(ba_in);
+  float *pout = Caml_ba_data_val(ba_out);
+
+  assert (pin);
+  assert (pout);
+
+  unsigned int w = Long_val(vw);
+  unsigned int h = Long_val(vh);
+
+  switch (Long_val(vn)) {
+    case 1:
+      LOOP(w, h, 1) { POUTf(0, 1); }
+      break;
+    case 2:
+      LOOP(w, h, 2) { POUTf(0, 2); POUTf(1, 2); }
+      break;
+    case 3:
+      LOOP(w, h, 3) { POUTf(0, 3); POUTf(1, 3); POUTf(2, 3); }
+      break;
+    case 4:
+      LOOP(w, h, 4) { POUTf(0, 4); POUTf(1, 4); POUTf(2, 4); POUTf(3, 4); }
+      break;
+  }
+
+  CAMLreturn(Val_unit);
+}

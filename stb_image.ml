@@ -46,3 +46,20 @@ let width    t = t.width
 let height   t = t.height
 let channels t = t.channels
 let data     t = t.data
+
+let validate_mipmap t1 t2 =
+  if t1.channels <> t2.channels then
+    invalid_arg "mipmap: images have different number of channels";
+  if t1.width / 2 <> t2.width then
+    invalid_arg "mipmap: second image size should exactly be half of first image"
+
+external mipmap : int -> int -> int -> int8 buffer -> int8 buffer -> unit = "ml_stbi_mipmap"
+external mipmapf : int -> int -> int -> float32 buffer -> float32 buffer -> unit = "ml_stbi_mipmapf"
+
+let mipmap t1 t2 =
+  validate_mipmap t1 t2;
+  mipmap t1.width t1.height t1.channels t1.data t2.data
+
+let mipmapf t1 t2 =
+  validate_mipmap t1 t2;
+  mipmapf t1.width t1.height t1.channels t1.data t2.data
