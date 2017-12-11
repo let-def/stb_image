@@ -219,3 +219,68 @@ CAMLprim value ml_stbi_mipmapf(value img_in, value img_out)
 
   CAMLreturn(Val_unit);
 }
+
+static void memswap(void *i0, void *i1, size_t count)
+{
+  unsigned char *p0 = i0, *p1 = i1;
+  for (size_t i = 0; i < count; ++i)
+  {
+    unsigned char tmp = p0[i];
+    p0[i] = p1[i];
+    p1[i] = tmp;
+  }
+}
+
+CAMLprim value ml_stbi_vflip(value img)
+{
+  CAMLparam1(img);
+  unsigned char *ptop = Caml_ba_data_val(Field(img, 5));
+  assert (ptop);
+  ptop += Long_val(Field(img, 3));
+
+  unsigned int
+    w = Long_val(Field(img, 0)),
+    h = Long_val(Field(img, 1)),
+    n = Long_val(Field(img, 2)),
+    stride = Long_val(Field(img, 4)),
+    row = w * n;
+
+  unsigned char *pbot = ptop + (stride * h - stride);
+  w = w * n;
+
+  for (unsigned int y = 0; y < h; y++)
+  {
+    memswap(ptop, pbot, row);
+    ptop += stride;
+    pbot -= stride;
+  }
+
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value ml_stbi_vflipf(value img)
+{
+  CAMLparam1(img);
+  float *ptop = Caml_ba_data_val(Field(img, 5));
+  assert (ptop);
+  ptop += Long_val(Field(img, 3));
+
+  unsigned int
+    w = Long_val(Field(img, 0)),
+    h = Long_val(Field(img, 1)),
+    n = Long_val(Field(img, 2)),
+    stride = Long_val(Field(img, 4)),
+    row = w * n * sizeof(float);
+
+  float *pbot = ptop + (stride * h - stride);
+  w = w * n;
+
+  for (unsigned int y = 0; y < h; y++)
+  {
+    memswap(ptop, pbot, row);
+    ptop += stride;
+    pbot -= stride;
+  }
+
+  CAMLreturn(Val_unit);
+}

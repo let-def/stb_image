@@ -76,3 +76,6 @@ external mipmapf : float32 t -> float32 t -> unit = "ml_stbi_mipmapf"
 
 let mipmap t1 t2 = validate_mipmap t1 t2; mipmap t1 t2
 let mipmapf t1 t2 = validate_mipmap t1 t2; mipmapf t1 t2
+
+external vflip : int8 t -> unit = "ml_stbi_vflip"
+external vflipf : float32 t -> unit = "ml_stbi_vflipf"

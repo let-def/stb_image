@@ -109,3 +109,6 @@ val mipmap : int8 t -> int8 t -> unit
 
 (** Downsample floating point images.  See [mipmap].  *)
 val mipmapf : float32 t -> float32 t -> unit
+
+val vflip : int8 t -> unit
+val vflipf : float32 t -> unit
