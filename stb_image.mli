@@ -40,12 +40,20 @@ type int8 = (int, int8_unsigned_elt) kind
     - each pixel is made of [channels] items
     - each line is made of [width] pixels
     - image is made of [height] lines *)
-type 'kind t = {
+type 'kind t = private {
   width: int;
   height: int;
   channels: int;
+  offset: int;
+  stride: int;
   data: 'kind buffer;
 }
+
+(** {2 Creating image} *)
+
+val image : width:int -> height:int -> channels:int ->
+            ?offset:int -> ?stride:int ->
+            'kind buffer -> 'kind t result
 
 (** {2 Image accessors} *)
 

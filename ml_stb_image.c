@@ -13,7 +13,7 @@ static int Channels_val(value channel)
   CAMLparam1(channel);
   int ret = 0;
   if (channel != Val_unit)
-    ret = Int_val(Field(channel, 0));
+    ret = Long_val(Field(channel, 0));
   CAMLreturn(ret);
 }
 
@@ -25,10 +25,12 @@ static value return_image(void *data, int ty, int x, int y, int n)
   ba = caml_ba_alloc_dims(ty | CAML_BA_C_LAYOUT, 1, data, x * y * n);
 
   tup = caml_alloc(4, 0);
-  Store_field(tup, 0, Val_int(x));
-  Store_field(tup, 1, Val_int(y));
-  Store_field(tup, 2, Val_int(n));
-  Store_field(tup, 3, ba);
+  Store_field(tup, 0, Val_long(x));
+  Store_field(tup, 1, Val_long(y));
+  Store_field(tup, 2, Val_long(n));
+  Store_field(tup, 3, Val_long(0));
+  Store_field(tup, 4, Val_long(x * n));
+  Store_field(tup, 5, ba);
 
   /* Result.Ok tup */
   ret = caml_alloc(1, 0);
@@ -46,7 +48,7 @@ static value return_failure(void)
 
   /* `Msg "str" */
   err = caml_alloc(2, 0);
-  Store_field(err, 0, Val_int(3854881));
+  Store_field(err, 0, Val_long(3854881));
   Store_field(err, 1, str);
 
   /* Result.Error (`Msg "str") */
@@ -145,21 +147,27 @@ CAMLprim value ml_stbi_image_free(value ba)
 
 #define LOOP(w,h,n) \
   for (unsigned int y = 0, w2 = (w) / 2, h2 = (h) / 2; \
-       y < h2; ++y, pin += ((w) & 1) + (w)) \
+       y < h2; ++y, pin0 += sin, pin = pin0, pout0 += sout, pout = pout0) \
     for (unsigned int x = 0; x < w2; ++x, pin += 2 * n, pout += n)
 
-CAMLprim value ml_stbi_mipmap(value vw, value vh, value vn, value ba_in, value ba_out)
+CAMLprim value ml_stbi_mipmap(value img_in, value img_out)
 {
-  CAMLparam2(ba_in, ba_out);
-  unsigned char *pin = Caml_ba_data_val(ba_in);
-  unsigned char *pout = Caml_ba_data_val(ba_out);
+  CAMLparam2(img_in, img_out);
+  unsigned char *pin, *pout,
+    *pin0 = Caml_ba_data_val(Field(img_in, 5)),
+    *pout0 = Caml_ba_data_val(Field(img_out, 5));
+  assert (pin0 && pout0);
 
-  assert (pin);
-  assert (pout);
+  pin0 += Long_val(Field(img_in, 3));
+  pout0 += Long_val(Field(img_out, 3));
 
-  unsigned int w = Long_val(vw);
-  unsigned int h = Long_val(vh);
-  switch (Long_val(vn)) {
+  unsigned int
+    sin = Long_val(Field(img_in, 4)),
+    sout = Long_val(Field(img_out, 4)),
+    w = Long_val(Field(img_in, 0)),
+    h = Long_val(Field(img_in, 1));
+
+  switch (Long_val(Field(img_in, 2))) {
     case 1:
       LOOP(w, h, 1) { POUT(0, 1); }
       break;
@@ -177,19 +185,24 @@ CAMLprim value ml_stbi_mipmap(value vw, value vh, value vn, value ba_in, value b
   CAMLreturn(Val_unit);
 }
 
-CAMLprim value ml_stbi_mipmapf(value vw, value vh, value vn, value ba_in, value ba_out)
+CAMLprim value ml_stbi_mipmapf(value img_in, value img_out)
 {
-  CAMLparam2(ba_in, ba_out);
-  float *pin = Caml_ba_data_val(ba_in);
-  float *pout = Caml_ba_data_val(ba_out);
+  CAMLparam2(img_in, img_out);
+  float *pin, *pout,
+    *pin0 = Caml_ba_data_val(Field(img_in, 5)),
+    *pout0 = Caml_ba_data_val(Field(img_out, 5));
+  assert (pin0 && pout0);
 
-  assert (pin);
-  assert (pout);
+  pin0 += Long_val(Field(img_in, 3));
+  pout0 += Long_val(Field(img_out, 3));
 
-  unsigned int w = Long_val(vw);
-  unsigned int h = Long_val(vh);
+  unsigned int
+    sin = Long_val(Field(img_in, 4)),
+    sout = Long_val(Field(img_out, 4)),
+    w = Long_val(Field(img_in, 0)),
+    h = Long_val(Field(img_in, 1));
 
-  switch (Long_val(vn)) {
+  switch (Long_val(Field(img_in, 2))) {
     case 1:
       LOOP(w, h, 1) { POUTf(0, 1); }
       break;
