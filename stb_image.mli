@@ -96,7 +96,7 @@ val decode_unmanaged  : ?channels:int -> _ buffer -> int8 t result
 val decodef_unmanaged : ?channels:int -> _ buffer -> float32 t result
 val free_unmanaged: _ t -> unit
 
-(** {2 Mipmap generation} *)
+(** {2 Image filtering} *)
 
 (** Generate one level of mipmap: downsample image half in each dimension.
     In [mipmap imgin imgout]:
@@ -110,5 +110,11 @@ val mipmap : int8 t -> int8 t -> unit
 (** Downsample floating point images.  See [mipmap].  *)
 val mipmapf : float32 t -> float32 t -> unit
 
+(** Flip the image vertically *)
 val vflip : int8 t -> unit
+
+(** Flip the image vertically *)
 val vflipf : float32 t -> unit
+
+(** Blur the image *)
+val expblur : int8 t -> radius:float -> unit

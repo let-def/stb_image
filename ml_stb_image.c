@@ -284,3 +284,185 @@ CAMLprim value ml_stbi_vflipf(value img)
 
   CAMLreturn(Val_unit);
 }
+
+// Based on Exponential blur, Jani Huhtanen, 2006
+// and [https://github.com/memononen/fontstash](fontstash), Mikko Mononen, 2014
+
+#define APREC 16
+#define ZPREC 7
+
+#define APPROX(alpha, reg, acc) \
+  ((alpha * (((int)(reg) << ZPREC) - acc)) >> APREC)
+
+#define BLUR0(reg, acc) int acc = (int)(reg) << ZPREC
+
+#define BLUR(reg, acc) \
+  do { \
+    acc += APPROX(alpha, reg, acc); \
+    reg = (unsigned char)(acc >> ZPREC); \
+  } while (0)
+
+#define OUTERLOOP(var, ptr, bound, stride) \
+  for (unsigned char *_limit = ptr + bound * stride, *var = ptr; var < _limit; var += stride)
+
+#define INNERLOOP(var, bound, stride, BODY) \
+  do { \
+    int var; \
+    for (var = stride; var < bound * stride; var += stride) BODY; \
+    for (var = (bound - 2) * stride; var >= 0; var -= stride) BODY; \
+    for (var = stride; var < bound * stride; var += stride) BODY; \
+    for (var = (bound - 2) * stride; var >= 0; var -= stride) BODY; \
+  } while (0)
+
+static void expblur4(unsigned char* ptr, int w, int h, int stride, int alpha)
+{
+  OUTERLOOP(dst, ptr, h, stride)
+  {
+    BLUR0(dst[0], acc0);
+    BLUR0(dst[1], acc1);
+    BLUR0(dst[2], acc2);
+    BLUR0(dst[3], acc3);
+    INNERLOOP(x, w, 4,
+        {
+         BLUR(dst[x+0], acc0);
+         BLUR(dst[x+1], acc1);
+         BLUR(dst[x+2], acc2);
+         BLUR(dst[x+3], acc3);
+        });
+  }
+
+  OUTERLOOP(dst, ptr, w, 4)
+  {
+    BLUR0(dst[0], acc0);
+    BLUR0(dst[1], acc1);
+    BLUR0(dst[2], acc2);
+    BLUR0(dst[3], acc3);
+    INNERLOOP(y, h, stride,
+        {
+         BLUR(dst[y+0], acc0);
+         BLUR(dst[y+1], acc1);
+         BLUR(dst[y+2], acc2);
+         BLUR(dst[y+3], acc3);
+        });
+  }
+}
+
+static void expblur3(unsigned char* ptr, int w, int h, int stride, int alpha)
+{
+  OUTERLOOP(dst, ptr, h, stride)
+  {
+    BLUR0(dst[0], acc0);
+    BLUR0(dst[1], acc1);
+    BLUR0(dst[2], acc2);
+    INNERLOOP(x, w, 3,
+        {
+         BLUR(dst[x+0], acc0);
+         BLUR(dst[x+1], acc1);
+         BLUR(dst[x+2], acc2);
+        });
+  }
+
+  OUTERLOOP(dst, ptr, w, 3)
+  {
+    BLUR0(dst[0], acc0);
+    BLUR0(dst[1], acc1);
+    BLUR0(dst[2], acc2);
+    INNERLOOP(y, h, stride,
+        {
+         BLUR(dst[y+0], acc0);
+         BLUR(dst[y+1], acc1);
+         BLUR(dst[y+2], acc2);
+        });
+  }
+}
+
+static void expblur2(unsigned char* ptr, int w, int h, int stride, int alpha)
+{
+  OUTERLOOP(dst, ptr, h, stride)
+  {
+    BLUR0(dst[0], acc0);
+    BLUR0(dst[1], acc1);
+    INNERLOOP(x, w, 2,
+        {
+         BLUR(dst[x+0], acc0);
+         BLUR(dst[x+1], acc1);
+        });
+  }
+
+  OUTERLOOP(dst, ptr, w, 2)
+  {
+    BLUR0(dst[0], acc0);
+    BLUR0(dst[1], acc1);
+    INNERLOOP(y, h, stride,
+        {
+         BLUR(dst[y+0], acc0);
+         BLUR(dst[y+1], acc1);
+        });
+  }
+}
+
+static void expblur1(unsigned char* ptr, int w, int h, int stride, int alpha)
+{
+  OUTERLOOP(dst, ptr, h, stride)
+  {
+    BLUR0(dst[0], acc0);
+    INNERLOOP(x, w, 1,
+        {
+         BLUR(dst[x+0], acc0);
+        });
+  }
+
+  OUTERLOOP(dst, ptr, w, 1)
+  {
+    BLUR0(dst[0], acc0);
+    INNERLOOP(y, h, stride,
+        {
+         BLUR(dst[y+0], acc0);
+        });
+  }
+}
+
+static void expblur(unsigned char* ptr, int w, int h, int channels, int stride, float radius)
+{
+	int i, alpha;
+	float sigma;
+
+  if (radius < 0.01) return;
+
+  // Calculate the alpha such that 90% of the kernel is within the radius.
+  // (Kernel extends to infinity)
+	sigma = radius * 0.57735f; // 1 / sqrt(3)
+
+  // Improve blur quality by doing two pass
+  // blur(sigma1) o blur(sigma2) = blur(sqrt(sqr(sigma1)*sqr(sigma2)))
+  sigma = sigma * 0.707106f; // 1 / sqrt(2)
+
+	alpha = (int)((1<<APREC) * (1.0f - expf(-2.3f / (sigma + 1.0f))));
+
+  switch (channels)
+  {
+    case 1: expblur1(ptr, w, h, stride, alpha); break;
+    case 2: expblur2(ptr, w, h, stride, alpha); break;
+    case 3: expblur3(ptr, w, h, stride, alpha); break;
+    case 4: expblur4(ptr, w, h, stride, alpha); break;
+    default: abort();
+  }
+}
+
+CAMLprim value ml_stbi_expblur(value img, value radius)
+{
+  CAMLparam2(img, radius);
+
+  unsigned char *ptr = Caml_ba_data_val(Field(img, 5));
+  assert (ptr);
+  ptr += Long_val(Field(img, 3));
+
+  unsigned int
+    w = Long_val(Field(img, 0)),
+    h = Long_val(Field(img, 1)),
+    n = Long_val(Field(img, 2)),
+    stride = Long_val(Field(img, 4));
+
+  expblur(ptr, w, h, n, stride, Double_val(radius));
+  CAMLreturn(Val_unit);
+}

@@ -79,3 +79,6 @@ let mipmapf t1 t2 = validate_mipmap t1 t2; mipmapf t1 t2
 
 external vflip : int8 t -> unit = "ml_stbi_vflip"
 external vflipf : float32 t -> unit = "ml_stbi_vflipf"
+
+(** Blur the image *)
+external expblur : int8 t -> radius:float -> unit = "ml_stbi_expblur"
