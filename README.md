@@ -12,6 +12,10 @@ $ make install
 
 ## CHANGELOG
 
+Versoin 0.4, Wed Jan 17 20:52:19 JST 2018
+  Image specification can now contain offset and stride (BREAKING CHANGE).
+  Add filtering primitives (blur and mipmap)
+
 Version 0.3, Thu Nov  3 18:26:45 CET 2016
   Update to stb\_image.h v2.12
 
