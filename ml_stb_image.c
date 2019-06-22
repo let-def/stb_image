@@ -24,7 +24,7 @@ static value return_image(void *data, int ty, int x, int y, int n)
 
   ba = caml_ba_alloc_dims(ty | CAML_BA_C_LAYOUT, 1, data, x * y * n);
 
-  tup = caml_alloc(4, 0);
+  tup = caml_alloc(6, 0);
   Store_field(tup, 0, Val_long(x));
   Store_field(tup, 1, Val_long(y));
   Store_field(tup, 2, Val_long(n));
