@@ -12,7 +12,10 @@ $ make install
 
 ## CHANGELOG
 
-Versoin 0.4, Wed Jan 17 20:52:19 JST 2018
+Version 0.5, Fri Jun 28 19:45:20 CEST 2019
+  Bug fix in C-bindings, fixed by @LaurentMazare
+
+Version 0.4, Wed Jan 17 20:52:19 JST 2018
   Image specification can now contain offset and stride (BREAKING CHANGE).
   Add filtering primitives (blur and mipmap)
 
