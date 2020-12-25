@@ -63,9 +63,10 @@ CAMLprim value ml_stbi_load(value channels, value filename)
   CAMLparam2(channels, filename);
   CAMLlocal1(ret);
 
-  int x, y, n;
-	unsigned char* image_data =
-    stbi_load(String_val(filename), &x, &y, &n, Channels_val(channels));
+  int x, y, n, n0;
+  n0 = Channels_val(channels);
+	unsigned char* image_data = stbi_load(String_val(filename), &x, &y, &n, n0);
+  if (n0 != 0) n = n0;
 
   if (image_data)
     ret = return_image(image_data, CAML_BA_UINT8, x, y, n);
@@ -80,9 +81,11 @@ CAMLprim value ml_stbi_loadf(value channels, value filename)
   CAMLparam2(channels, filename);
   CAMLlocal1(ret);
 
-  int x, y, n;
+  int x, y, n, n0;
+  n0 = Channels_val(channels);
 	float* image_data =
-    stbi_loadf(String_val(filename), &x, &y, &n, Channels_val(channels));
+    stbi_loadf(String_val(filename), &x, &y, &n, n0);
+  if (n0 != 0) n = n0;
 
   if (image_data)
     ret = return_image(image_data, CAML_BA_FLOAT32, x, y, n);
@@ -97,11 +100,13 @@ CAMLprim value ml_stbi_load_mem(value channels, value mem)
   CAMLparam2(channels, mem);
   CAMLlocal1(ret);
 
-  int x, y, n;
+  int x, y, n, n0;
+  n0 = Channels_val(channels);
 	unsigned char* image_data =
     stbi_load_from_memory(Caml_ba_data_val(mem),
         caml_ba_byte_size(Caml_ba_array_val(mem)),
-        &x, &y, &n, Channels_val(channels));
+        &x, &y, &n, n0);
+  if (n0 != 0) n = n0;
 
   if (image_data)
     ret = return_image(image_data, CAML_BA_UINT8, x, y, n);
@@ -116,11 +121,13 @@ CAMLprim value ml_stbi_loadf_mem(value channels, value mem)
   CAMLparam2(channels, mem);
   CAMLlocal1(ret);
 
-  int x, y, n;
+  int x, y, n, n0;
+  n0 = Channels_val(channels);
 	float* image_data =
     stbi_loadf_from_memory(Caml_ba_data_val(mem),
         caml_ba_byte_size(Caml_ba_array_val(mem)),
-        &x, &y, &n, Channels_val(channels));
+        &x, &y, &n, n0);
+  if (n0 != 0) n = n0;
 
   if (image_data)
     ret = return_image(image_data, CAML_BA_FLOAT32, x, y, n);
