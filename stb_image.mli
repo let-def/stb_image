@@ -39,7 +39,12 @@ type int8 = (int, int8_unsigned_elt) kind
     - channels are interleaved
     - each pixel is made of [channels] items
     - each line is made of [width] pixels
-    - image is made of [height] lines *)
+    - image is made of [height] lines
+    - there is [stride] items between two lines.
+
+    The pixel at coordinates (x, y) and in channel c is thus stored at index
+    [y * stride + x * channels + c] in the buffer.
+ *)
 type 'kind t = private {
   width: int;
   height: int;
